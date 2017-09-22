@@ -6,6 +6,8 @@ import com.amazonaws.auth.{AWSCredentialsProvider, DefaultAWSCredentialsProvider
 import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAdapterClient
 import com.amazonaws.services.kinesis.clientlibrary.lib.worker.{InitialPositionInStream, KinesisClientLibConfiguration}
 
+import scala.concurrent.duration.FiniteDuration
+
 /** Configures KCL
   *
   * http://docs.aws.amazon.com/kinesis/latest/dev/kinesis-record-processor-implementation-app-java.html
@@ -31,16 +33,17 @@ object KCLConfiguration {
     *
     * @param streamName kinesis stream name
     */
-  def apply( applicationName: String
-           , streamName: String
-           , kinesisCredentialsProvider: AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain()
-           , dynamoCredentialsProvider: AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain()
-           , cloudWatchCredentialsProvider: AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain()
-           , regionName: Option[String] = None
-           , dynamoDBKinesisAdapterClient: Option[AmazonDynamoDBStreamsAdapterClient] = None
-           , initialPositionInStream: InitialPositionInStream = InitialPositionInStream.LATEST
-           , endpointConfiguration: Option[KinesisClientEndpoints] = None
-           , failoverTimeoutMillis: Option[Long] = None): KinesisClientLibConfiguration = {
+  def apply(applicationName: String
+            , streamName: String
+            , kinesisCredentialsProvider: AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain()
+            , dynamoCredentialsProvider: AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain()
+            , cloudWatchCredentialsProvider: AWSCredentialsProvider = new DefaultAWSCredentialsProviderChain()
+            , regionName: Option[String] = None
+            , initialPositionInStream: InitialPositionInStream = InitialPositionInStream.LATEST
+            , endpointConfiguration: Option[KinesisClientEndpoints] = None
+            , failoverTimeoutMillis: Option[Long] = None
+            , maxRecordsPerBatch: Option[Int]
+            , idleTimeBetweenReads: Option[FiniteDuration]): KinesisClientLibConfiguration = {
 
     val dynamoTableName = (s"${applicationName}.${streamName}")
       .replaceAll("[^a-zA-Z0-9_.-]", "-")
@@ -55,14 +58,15 @@ object KCLConfiguration {
     ).withRegionName(regionName.orNull)
      .withInitialPositionInStream(initialPositionInStream)
      .withFailoverTimeMillis(failoverTimeoutMillis.getOrElse(KinesisClientLibConfiguration.DEFAULT_FAILOVER_TIME_MILLIS))
+     .withMaxRecords(maxRecordsPerBatch.getOrElse((KinesisClientLibConfiguration.DEFAULT_MAX_RECORDS)))
+     .withIdleTimeBetweenReadsInMillis(
+       idleTimeBetweenReads.map(_.toMillis).getOrElse(
+         KinesisClientLibConfiguration.DEFAULT_IDLETIME_BETWEEN_READS_MILLIS
+       )
+     )
 
-    val adapterConf = dynamoDBKinesisAdapterClient.fold(conf) { _ =>
-      conf.withMaxRecords(1000) //using AWS recommended value
-        .withIdleTimeBetweenReadsInMillis(500) //using AWS recommended value
-    }
-
-    endpointConfiguration.fold(adapterConf)( endpoints =>
-      adapterConf.withDynamoDBEndpoint(endpoints.dynamoDBEndpoint)
+    endpointConfiguration.fold(conf)( endpoints =>
+      conf.withDynamoDBEndpoint(endpoints.dynamoDBEndpoint)
           .withKinesisEndpoint(endpoints.kinesisEndpoint)
     )
 

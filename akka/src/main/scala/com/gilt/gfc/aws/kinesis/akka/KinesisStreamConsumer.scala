@@ -2,12 +2,19 @@ package com.gilt.gfc.aws.kinesis.akka
 
 import com.gilt.gfc.aws.kinesis.client.{KCLConfiguration, KCLWorkerRunner, KinesisRecordReader}
 
+import scala.concurrent.duration._
+
 class KinesisStreamConsumer[T](
   streamConfig: KinesisStreamConsumerConfig[T],
   handler: KinesisStreamHandler[T]
 ) (
   implicit private val evReader: KinesisRecordReader[T]
 ) {
+
+  private val maxRecords: Option[Int] = streamConfig.maxRecordsPerBatch.orElse(
+    streamConfig.dynamoDBKinesisAdapterClient.map(_ => 1000)
+  )
+
   private val kclConfig = KCLConfiguration(
     streamConfig.applicationName,
     streamConfig.streamName,
@@ -15,10 +22,11 @@ class KinesisStreamConsumer[T](
     streamConfig.dynamoCredentialsProvider,
     streamConfig.cloudWatchCredentialsProvider,
     streamConfig.regionName,
-    streamConfig.dynamoDBKinesisAdapterClient,
     streamConfig.initialPositionInStream,
     streamConfig.kinesisClientEndpoints,
-    streamConfig.failoverTimeoutMillis
+    streamConfig.failoverTimeoutMillis,
+    maxRecords,
+    streamConfig.idleTimeBetweenReads
   )
 
   private def createWorker = KCLWorkerRunner(
