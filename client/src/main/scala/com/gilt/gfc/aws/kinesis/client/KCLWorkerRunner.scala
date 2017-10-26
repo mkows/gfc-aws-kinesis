@@ -121,7 +121,7 @@ case class KCLWorkerRunner (
         processRecords(shardId, as.map(_.get), checkpointer)
 
         // log records we could not parse, pointless to retry them
-        errs.map(_.failed.get).foreach { e => error(e.getMessage, e) }
+        errs.map(_.failed.get).foreach { e => error("Error processing a single batched record", e) }
       }
 
       val workerBuilder: Worker.Builder = new Worker.Builder()
@@ -141,7 +141,7 @@ case class KCLWorkerRunner (
 
     } catch {
       case NonFatal(e) =>
-        error(e.getMessage, e)
+        error("Error processing an entire record batch", e)
     }
   }
 
@@ -231,7 +231,8 @@ case class KCLWorkerRunner (
       Success(evReader(r))
     } catch {
       case NonFatal(e) =>
-        Failure(KCLWorkerRunnerRecordConversionException(r, ByteBufferUtil.toHexString(copyOfTheData), e))
+        debug(s"Record conversion failure - record [$r], raw data [${ByteBufferUtil.toHexString(copyOfTheData)}]", e)
+        Failure(KCLWorkerRunnerRecordConversionException(r, e))
     }
   }
 }
@@ -239,13 +240,12 @@ case class KCLWorkerRunner (
 
 case class KCLWorkerRunnerRecordConversionException(
   record: Record
-, hexData: String
 , cause: Throwable
-) extends RuntimeException(s"Failed to convert ${record} to required type: ${cause.getMessage} :: DATA: ${hexData}", cause)
+) extends RuntimeException(s"Failed to convert ${record} to required type", cause)
 
 
 case class KCLWorkerRunnerRecordProcessingException(
   record: Record
 , shardId: String
 , cause: Throwable
-) extends RuntimeException(s"Failed to process ${record} from shard ${shardId}: ${cause.getMessage}", cause)
+) extends RuntimeException(s"Failed to process ${record} from shard ${shardId}", cause)
