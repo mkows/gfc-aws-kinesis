@@ -30,8 +30,9 @@ Consume events:
 
   val config = KCLConfiguration("consumer-name", "kinesis-stream-name")
 
-  KCLWorkerRunner(config).runAsyncSingleRecordProcessor[A](1 minute) { a: String =>
+  KCLWorkerRunner(config).runAsyncSingleRecordProcessor[String](1 minute) { a: String =>
      // .. do something with A
+     Future.successful(())
   }
 ```
 
