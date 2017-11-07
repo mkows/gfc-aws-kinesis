@@ -25,7 +25,7 @@ Consume events:
 ```scala
 
   implicit object StringRecordReader extends KinesisRecordReader[String]{
-    override def apply(r: Record) : String = new String(r.data.array(), "UTF-8")
+    override def apply(r: Record) : String = new String(r.getData.array(), "UTF-8")
   }
 
   val config = KCLConfiguration("consumer-name", "kinesis-stream-name")
