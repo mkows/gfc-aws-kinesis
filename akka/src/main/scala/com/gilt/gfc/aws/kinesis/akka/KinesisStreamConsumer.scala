@@ -1,8 +1,7 @@
 package com.gilt.gfc.aws.kinesis.akka
 
+import com.amazonaws.services.kinesis.clientlibrary.lib.worker.KinesisClientLibConfiguration
 import com.gilt.gfc.aws.kinesis.client.{KCLConfiguration, KCLWorkerRunner, KinesisRecordReader}
-
-import scala.concurrent.duration._
 
 class KinesisStreamConsumer[T](
   streamConfig: KinesisStreamConsumerConfig[T],
@@ -11,9 +10,9 @@ class KinesisStreamConsumer[T](
   implicit private val evReader: KinesisRecordReader[T]
 ) {
 
-  private val maxRecords: Option[Int] = streamConfig.maxRecordsPerBatch.orElse(
+  private val maxRecords: Int = streamConfig.maxRecordsPerBatch.orElse(
     streamConfig.dynamoDBKinesisAdapterClient.map(_ => 1000)
-  )
+  ).getOrElse(KinesisClientLibConfiguration.DEFAULT_MAX_RECORDS)
 
   private val kclConfig = KCLConfiguration(
     streamConfig.applicationName,

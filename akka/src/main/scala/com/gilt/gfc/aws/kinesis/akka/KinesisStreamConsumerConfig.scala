@@ -2,7 +2,7 @@ package com.gilt.gfc.aws.kinesis.akka
 
 import com.amazonaws.auth.{AWSCredentialsProvider, DefaultAWSCredentialsProviderChain}
 import com.amazonaws.services.dynamodbv2.streamsadapter.AmazonDynamoDBStreamsAdapterClient
-import com.amazonaws.services.kinesis.clientlibrary.lib.worker.InitialPositionInStream
+import com.amazonaws.services.kinesis.clientlibrary.lib.worker.{InitialPositionInStream, KinesisClientLibConfiguration}
 import com.amazonaws.services.kinesis.metrics.impl.NullMetricsFactory
 import com.amazonaws.services.kinesis.metrics.interfaces.IMetricsFactory
 import com.gilt.gfc.aws.kinesis.client.KinesisClientEndpoints
@@ -22,9 +22,9 @@ case class KinesisStreamConsumerConfig[T](
   regionName: Option[String] = None,
   dynamoDBKinesisAdapterClient: Option[AmazonDynamoDBStreamsAdapterClient] = None,
   kinesisClientEndpoints: Option[KinesisClientEndpoints] = None,
-  failoverTimeoutMillis: Option[Long] = None,
+  failoverTimeoutMillis: Long = KinesisClientLibConfiguration.DEFAULT_FAILOVER_TIME_MILLIS,
   maxRecordsPerBatch: Option[Int] = None,
-  idleTimeBetweenReads: Option[FiniteDuration] = None
+  idleTimeBetweenReads: FiniteDuration = KinesisClientLibConfiguration.DEFAULT_IDLETIME_BETWEEN_READS_MILLIS.millis
 ) {
 
   /**
