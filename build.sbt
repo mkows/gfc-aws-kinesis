@@ -63,7 +63,7 @@ lazy val client = (project in file("client"))
     "com.gilt"      %% "gfc-util"              % "0.1.7",
     "com.gilt"      %% "gfc-logging"           % "0.0.8",
     "com.gilt"      %% "gfc-concurrent"        % "0.3.6",
-    "com.amazonaws" %  "aws-java-sdk-kinesis"  % "1.11.226",
+    "com.amazonaws" %  "aws-java-sdk-kinesis"  % "1.11.243",
     "com.amazonaws" %  "amazon-kinesis-client" % "1.8.7",
     "com.amazonaws" % "dynamodb-streams-kinesis-adapter" % "1.2.2",
     "org.specs2"    %% "specs2-scalacheck"     % "4.0.1" % Test
