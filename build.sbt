@@ -60,7 +60,7 @@ lazy val client = (project in file("client"))
   .settings(
   name := "gfc-aws-kinesis",
   libraryDependencies ++= Seq(
-    "com.gilt"      %% "gfc-util"              % "0.1.7",
+    "com.gilt"      %% "gfc-util"              % "0.2.1",
     "com.gilt"      %% "gfc-logging"           % "0.0.8",
     "com.gilt"      %% "gfc-concurrent"        % "0.3.6",
     "com.amazonaws" %  "aws-java-sdk-kinesis"  % "1.11.243",
