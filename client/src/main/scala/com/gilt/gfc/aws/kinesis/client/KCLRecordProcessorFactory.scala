@@ -87,7 +87,7 @@ object KCLRecordProcessorFactory {
         myShardId = shardId
 
         info(s"Initializing record handler for kinesis shard ${myShardId}")
-        doRetry(doInitialize)
+        doRetry(doInitialize(myShardId))
       }
 
 
